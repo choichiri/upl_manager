@@ -1,0 +1,12 @@
+__pycache__/
+*.pyc
+dist/
+build/
+*.spec
+*.zip
+*.ico
+data/ss/
+data/*.xlsm
+config.json
+_capture_screens.py
+_build_manual.py
