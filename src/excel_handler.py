@@ -4,6 +4,7 @@ from pathlib import Path
 from datetime import datetime
 import openpyxl
 from openpyxl.workbook import Workbook
+from openpyxl.styles import Alignment
 
 from src.models import Customer, ProgressEntry
 
@@ -31,7 +32,7 @@ class ExcelHandler:
             raise FileNotFoundError(f"파일을 찾을 수 없습니다: {self.file_path}")
 
         self._wb = openpyxl.load_workbook(
-            str(self.file_path), keep_vba=True, data_only=True
+            str(self.file_path), keep_vba=True
         )
 
         customers = []
@@ -88,27 +89,29 @@ class ExcelHandler:
 
     def delete_customer(self, customer: Customer):
         """고객사 시트를 삭제하고 Index에서도 제거"""
-        if self._wb is None:
-            raise RuntimeError("워크북이 로드되지 않았습니다.")
+        self._check_file_writable()
+        self._reload_workbook()
 
         # 시트 삭제
         if customer.sheet_name in self._wb.sheetnames:
             del self._wb[customer.sheet_name]
 
-        # Index에서 해당 행 제거
+        # Index에서 해당 행 클리어
         if "Index" in self._wb.sheetnames:
             ws = self._wb["Index"]
+            max_col = ws.max_column or 8
             for row_num in range(2, ws.max_row + 1):
                 if ws.cell(row=row_num, column=1).value == customer.sheet_name:
-                    ws.delete_rows(row_num)
+                    for col in range(1, max_col + 1):
+                        ws.cell(row=row_num, column=col).value = ""
                     break
 
         self._save_file()
 
     def save_customer_info(self, customer: Customer):
         """고객사 기본정보를 시트에 저장"""
-        if self._wb is None:
-            raise RuntimeError("워크북이 로드되지 않았습니다.")
+        self._check_file_writable()
+        self._reload_workbook()
 
         ws = self._wb[customer.sheet_name]
         ws["A3"] = customer.company_name
@@ -123,36 +126,64 @@ class ExcelHandler:
         self._update_index(customer)
         self._save_file()
 
+    def _find_last_data_row(self, ws, start_row=10) -> int:
+        """실제 데이터가 있는 마지막 행 번호를 반환"""
+        last = start_row - 1
+        for row_num in range(start_row, ws.max_row + 1):
+            if ws.cell(row=row_num, column=1).value or ws.cell(row=row_num, column=2).value:
+                last = row_num
+        return last
+
+    def _merge_content_cells(self, ws, row):
+        """B~E 셀 병합 (이미 병합되어 있으면 무시)"""
+        from openpyxl.utils import get_column_letter
+        merge_range = f"B{row}:E{row}"
+        # 이미 병합되어 있는지 확인
+        for m in ws.merged_cells.ranges:
+            if str(m) == merge_range:
+                return
+        ws.merge_cells(merge_range)
+
     def add_progress_entry(self, customer: Customer, entry: ProgressEntry):
         """진행사항을 시트 맨 아래에 추가하고 파일 저장"""
-        if self._wb is None:
-            raise RuntimeError("워크북이 로드되지 않았습니다.")
+        self._check_file_writable()
+        self._reload_workbook()
 
         ws = self._wb[customer.sheet_name]
 
-        next_row = ws.max_row + 1
-        ws.cell(row=next_row, column=1, value=entry.date)
+        next_row = self._find_last_data_row(ws) + 1
+        cell = ws.cell(row=next_row, column=1, value=entry.date)
+        cell.alignment = Alignment(horizontal="center", vertical="center")
         ws.cell(row=next_row, column=2, value=entry.content)
+        self._merge_content_cells(ws, next_row)
 
         self._save_file()
 
     def save_all_progress(self, customer: Customer):
         """고객사의 전체 진행사항을 시트에 덮어쓰기 (수정/삭제 반영)"""
-        if self._wb is None:
-            raise RuntimeError("워크북이 로드되지 않았습니다.")
+        self._check_file_writable()
+        self._reload_workbook()
 
         ws = self._wb[customer.sheet_name]
 
-        # 기존 진행사항 행 삭제 (10행부터)
-        if ws.max_row >= 10:
-            ws.delete_rows(10, ws.max_row - 9)
+        # 기존 진행사항 전부 클리어 (빈 문자열로 — None은 xlsm에서 무시됨)
+        for row_num in range(10, ws.max_row + 1):
+            for col in (1, 2):
+                cell = ws.cell(row=row_num, column=col)
+                if not isinstance(cell, openpyxl.cell.cell.MergedCell):
+                    cell.value = ""
 
-        # progress는 최신순이므로 역순(오래된 순)으로 저장
+        # 메모리의 customer.progress를 기준으로 다시 저장 (최신순 → 오래된순)
         entries = list(reversed(customer.progress))
         for i, entry in enumerate(entries):
             row = 10 + i
-            ws.cell(row=row, column=1, value=entry.date)
-            ws.cell(row=row, column=2, value=entry.content)
+            a_cell = ws.cell(row=row, column=1)
+            b_cell = ws.cell(row=row, column=2)
+            if not isinstance(a_cell, openpyxl.cell.cell.MergedCell):
+                a_cell.value = entry.date
+                a_cell.alignment = Alignment(horizontal="center", vertical="center")
+            if not isinstance(b_cell, openpyxl.cell.cell.MergedCell):
+                b_cell.value = entry.content
 
         self._save_file()
 
@@ -165,8 +196,8 @@ class ExcelHandler:
 
     def create_customer_sheet(self, customer: Customer):
         """기존 고객사 시트를 복사하여 새 시트를 생성하고 데이터만 교체한다."""
-        if self._wb is None:
-            raise RuntimeError("워크북이 로드되지 않았습니다.")
+        self._check_file_writable()
+        self._reload_workbook()
 
         template = self._find_template_sheet()
 
@@ -175,9 +206,12 @@ class ExcelHandler:
             ws = self._wb.copy_worksheet(template)
             ws.title = customer.sheet_name
 
-            # 진행사항 행 삭제 (10행부터)
-            if ws.max_row >= 10:
-                ws.delete_rows(10, ws.max_row - 9)
+            # 진행사항 셀 클리어 (10행부터)
+            for row_num in range(10, ws.max_row + 1):
+                for col in (1, 2):
+                    cell = ws.cell(row=row_num, column=col)
+                    if not isinstance(cell, openpyxl.cell.cell.MergedCell):
+                        cell.value = ""
         else:
             # 복사할 시트가 없으면 직접 생성 (fallback)
             ws = self._wb.create_sheet(title=customer.sheet_name)
@@ -259,8 +293,31 @@ class ExcelHandler:
         backup_path = backup_dir / f"{stem}_{timestamp}{suffix}"
         shutil.copy2(str(self.file_path), str(backup_path))
 
+    def _check_file_writable(self):
+        """파일이 쓰기 가능한지 먼저 확인"""
+        try:
+            with open(str(self.file_path), "a"):
+                pass
+        except (PermissionError, OSError):
+            raise PermissionError(
+                "엑셀 파일이 다른 프로그램에서 열려 있어 저장할 수 없습니다.\n"
+                "Excel을 닫은 후 다시 시도해주세요."
+            )
+
+    def _reload_workbook(self):
+        """디스크에서 워크북을 다시 로드 (엑셀이 파일을 변경했을 수 있으므로)"""
+        if self._wb:
+            try:
+                self._wb.close()
+            except Exception:
+                pass
+        self._wb = openpyxl.load_workbook(
+            str(self.file_path), keep_vba=True
+        )
+
     def _save_file(self):
         """워크북을 파일로 저장"""
+        self._check_file_writable()
         self._wb.save(str(self.file_path))
 
     @staticmethod
