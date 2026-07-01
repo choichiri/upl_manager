@@ -314,9 +314,12 @@ QMainWindow, QWidget {
 /* === 타임라인 항목 === */
 #timelineItem {
     background-color: #ffffff;
-    border-bottom: 1px solid #f0f2f4;
+    border-bottom: none;
     border-radius: 0px;
     padding: 11px 8px 11px 12px;
+}
+#timelineItem[lastOfDate="true"] {
+    border-bottom: 1px solid #dcdee2;
 }
 #timelineItem:hover {
     background-color: #f8fafb;

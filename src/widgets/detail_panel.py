@@ -127,15 +127,18 @@ class TimelineItem(QWidget):
     edit_clicked = pyqtSignal(object)    # ProgressEntry
     delete_clicked = pyqtSignal(object)  # ProgressEntry
 
-    def __init__(self, entry: ProgressEntry, parent=None):
+    def __init__(self, entry: ProgressEntry, parent=None, show_date: bool = True):
         super().__init__(parent)
         self.entry = entry
         self.setObjectName("timelineItem")
+        # 커스텀 QWidget은 이 속성이 있어야 QSS의 배경/구분선이 렌더링됨
+        self.setAttribute(Qt.WidgetAttribute.WA_StyledBackground, True)
         layout = QHBoxLayout(self)
         layout.setContentsMargins(12, 10, 12, 10)
         layout.setSpacing(12)
 
-        date_label = QLabel(entry.date_str)
+        # 같은 날짜의 연속 항목은 날짜를 숨겨 그룹처럼 보이게 한다 (폭은 유지해 정렬 맞춤)
+        date_label = QLabel(entry.date_str if show_date else "")
         date_label.setObjectName("timelineDate")
         date_label.setAlignment(Qt.AlignmentFlag.AlignTop)
         date_label.setFixedWidth(80)
@@ -351,8 +354,13 @@ class DetailPanel(QWidget):
                 w.deleteLater()
         self._timeline_items.clear()
 
-        for entry in entries:
-            item = TimelineItem(entry)
+        for i, entry in enumerate(entries):
+            # 같은 날짜의 연속 항목은 두 번째부터 날짜를 숨긴다
+            show_date = (i == 0) or (entries[i - 1].date_str != entry.date_str)
+            item = TimelineItem(entry, show_date=show_date)
+            # 날짜가 바뀌는 경계(또는 마지막 항목)에만 구분선을 긋는다
+            last_of_date = (i == len(entries) - 1) or (entries[i + 1].date_str != entry.date_str)
+            item.setProperty("lastOfDate", last_of_date)
             item.edit_clicked.connect(self._on_edit_entry)
             item.delete_clicked.connect(self._on_delete_entry)
             self._timeline_layout.addWidget(item)

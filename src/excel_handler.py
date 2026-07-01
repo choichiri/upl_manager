@@ -80,6 +80,11 @@ class ExcelHandler:
             if not content:
                 continue
 
+            # 날짜(A열)가 비어있는 행은 직전 항목의 '이어지는 줄'로 병합
+            if date_val is None and entries:
+                entries[-1].content += "\n" + content
+                continue
+
             entries.append(ProgressEntry(date=date_val, content=content))
 
         entries.reverse()

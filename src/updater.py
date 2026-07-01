@@ -7,7 +7,7 @@ import urllib.request
 from PyQt6.QtWidgets import QMessageBox, QProgressDialog
 from PyQt6.QtCore import QThread, pyqtSignal, Qt
 
-CURRENT_VERSION = "1.1.0"
+CURRENT_VERSION = "1.2.0"
 GITHUB_REPO = "choichiri/upl_manager"
 GITHUB_API = f"https://api.github.com/repos/{GITHUB_REPO}/releases/latest"
 
