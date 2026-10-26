@@ -98,7 +98,7 @@ class CustomerListPanel(QWidget):
         # 검색창
         self._search = QLineEdit()
         self._search.setObjectName("searchInput")
-        self._search.setPlaceholderText("고객사, 담당자 검색...")
+        self._search.setPlaceholderText("고객사, 담당자, 국가 검색...")
         self._search.textChanged.connect(self._filter_list)
         layout.addWidget(self._search)
 
@@ -216,7 +216,7 @@ class CustomerListPanel(QWidget):
             c = card.customer
             visible = not text or any(
                 text in (getattr(c, f) or "").lower()
-                for f in ["company_name", "sheet_name", "contact_person", "ceo"]
+                for f in ["company_name", "sheet_name", "contact_person", "ceo", "address_or_country"]
             )
             card.setVisible(visible)
 
