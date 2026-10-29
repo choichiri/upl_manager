@@ -7,7 +7,7 @@ from PyQt6.QtWidgets import (
 from PyQt6.QtCore import Qt, pyqtSignal
 from PyQt6.QtGui import QAction
 
-from src.models import Customer, ProgressEntry
+from src.models import Customer, ProgressEntry, sort_progress
 from src.widgets.progress_form import ProgressForm, parse_date_input
 
 
@@ -354,6 +354,8 @@ class DetailPanel(QWidget):
                 w.deleteLater()
         self._timeline_items.clear()
 
+        # 데이터는 최신순으로 보관, 화면은 오래된 날짜가 위로 오게 표시
+        entries = list(reversed(entries))
         for i, entry in enumerate(entries):
             # 같은 날짜의 연속 항목은 두 번째부터 날짜를 숨긴다
             show_date = (i == 0) or (entries[i - 1].date_str != entry.date_str)
@@ -395,6 +397,7 @@ class DetailPanel(QWidget):
     def _on_edit_entry(self, entry: ProgressEntry):
         dlg = ProgressEditDialog(entry, self)
         if dlg.exec() == QDialog.DialogCode.Accepted:
+            sort_progress(self._all_entries)  # 날짜가 바뀌었을 수 있음
             self._populate_timeline(self._all_entries)
             self.progress_updated.emit()
 

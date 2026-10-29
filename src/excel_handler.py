@@ -6,7 +6,7 @@ import openpyxl
 from openpyxl.workbook import Workbook
 from openpyxl.styles import Alignment
 
-from src.models import Customer, ProgressEntry
+from src.models import Customer, ProgressEntry, sort_progress
 
 
 # 시스템 시트 (고객사 시트가 아닌 것들)
@@ -88,6 +88,7 @@ class ExcelHandler:
             entries.append(ProgressEntry(date=date_val, content=content))
 
         entries.reverse()
+        sort_progress(entries)
         return entries
 
     # === 쓰기 기능 ===
@@ -189,6 +190,7 @@ class ExcelHandler:
                 a_cell.alignment = Alignment(horizontal="center", vertical="center")
             if not isinstance(b_cell, openpyxl.cell.cell.MergedCell):
                 b_cell.value = entry.content
+                self._merge_content_cells(ws, row)
 
         self._save_file()
 

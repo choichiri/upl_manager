@@ -18,7 +18,7 @@ from PyQt6.QtCore import Qt, QRectF
 from PyQt6.QtGui import QPixmap, QIcon, QPainter, QPen, QColor, QPixmap as QPixmap2
 
 from src.excel_handler import ExcelHandler
-from src.models import Customer, ProgressEntry, set_date_format
+from src.models import Customer, ProgressEntry, set_date_format, sort_progress
 from src.widgets.customer_list import CustomerListPanel
 from src.widgets.detail_panel import DetailPanel
 from src.widgets.register_dialog import RegisterDialog
@@ -349,9 +349,10 @@ class MainWindow(QMainWindow):
         try:
             if self._config.get("auto_backup"):
                 handler.backup()
-            handler.add_progress_entry(self._current_customer, entry)
-            # 메모리 상의 진행사항에도 추가 (최신이 맨 위)
+            # 날짜순으로 끼워 넣고 시트 전체를 다시 저장 (엑셀도 날짜순 유지)
             self._current_customer.progress.insert(0, entry)
+            sort_progress(self._current_customer.progress)
+            handler.save_all_progress(self._current_customer)
             self._detail_panel.set_customer(self._current_customer)
             pass  # 추가 완료
         except Exception as e:
