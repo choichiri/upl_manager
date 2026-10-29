@@ -4,7 +4,8 @@ from PyQt6.QtWidgets import (
     QWidget, QVBoxLayout, QHBoxLayout, QLineEdit,
     QPushButton, QScrollArea, QLabel, QFrame
 )
-from PyQt6.QtCore import pyqtSignal, Qt
+from PyQt6.QtCore import pyqtSignal, Qt, QRectF
+from PyQt6.QtGui import QIcon, QPixmap, QPainter, QPen, QColor
 
 from src.models import Customer
 from src.widgets.customer_card import CustomerCard
@@ -55,13 +56,28 @@ def sort_key(customer: Customer) -> tuple:
     return (group, customer.display_name.lower())
 
 
+def _make_search_icon() -> QIcon:
+    """돋보기 아이콘을 직접 그린다"""
+    pixmap = QPixmap(32, 32)
+    pixmap.fill(QColor(0, 0, 0, 0))
+    painter = QPainter(pixmap)
+    painter.setRenderHint(QPainter.RenderHint.Antialiasing)
+    pen = QPen(QColor("#959ba5"), 2.6)
+    pen.setCapStyle(Qt.PenCapStyle.RoundCap)
+    painter.setPen(pen)
+    painter.drawEllipse(QRectF(7, 7, 14, 14))
+    painter.drawLine(19, 19, 25, 25)
+    painter.end()
+    return QIcon(pixmap)
+
+
 class SectionHeader(QWidget):
     """초성/알파벳 그룹 헤더"""
     def __init__(self, text: str, parent=None):
         super().__init__(parent)
         self.setObjectName("sectionHeader")
         layout = QHBoxLayout(self)
-        layout.setContentsMargins(12, 10, 12, 4)
+        layout.setContentsMargins(10, 14, 6, 4)
         layout.setSpacing(8)
 
         label = QLabel(text)
@@ -82,7 +98,8 @@ class CustomerListPanel(QWidget):
     def __init__(self, file_type: str = "korean", parent=None):
         super().__init__(parent)
         self.setObjectName("leftPanel")
-        self.setFixedWidth(330)
+        self.setAttribute(Qt.WidgetAttribute.WA_StyledBackground, True)
+        self.setFixedWidth(320)
         self._file_type = file_type
         self._cards: list[CustomerCard] = []
         self._section_headers: list[SectionHeader] = []
@@ -92,13 +109,15 @@ class CustomerListPanel(QWidget):
 
     def _build_ui(self):
         layout = QVBoxLayout(self)
-        layout.setContentsMargins(12, 12, 12, 12)
-        layout.setSpacing(8)
+        layout.setContentsMargins(14, 16, 14, 14)
+        layout.setSpacing(10)
 
         # 검색창
         self._search = QLineEdit()
         self._search.setObjectName("searchInput")
-        self._search.setPlaceholderText("고객사, 담당자, 국가 검색...")
+        self._search.setPlaceholderText("고객사, 담당자, 국가 검색")
+        self._search.setClearButtonEnabled(True)
+        self._search.addAction(_make_search_icon(), QLineEdit.ActionPosition.LeadingPosition)
         self._search.textChanged.connect(self._filter_list)
         layout.addWidget(self._search)
 
@@ -130,15 +149,15 @@ class CustomerListPanel(QWidget):
 
         self._list_container = QWidget()
         self._list_layout = QVBoxLayout(self._list_container)
-        self._list_layout.setContentsMargins(0, 0, 0, 0)
-        self._list_layout.setSpacing(0)
+        self._list_layout.setContentsMargins(0, 0, 4, 0)
+        self._list_layout.setSpacing(1)
         self._list_layout.addStretch()
 
         scroll.setWidget(self._list_container)
         layout.addWidget(scroll, 1)
 
         # 새 고객사 등록 버튼
-        add_btn = QPushButton("+ 새 고객사 등록")
+        add_btn = QPushButton("+  새 고객사 등록")
         add_btn.setObjectName("addCustomerButton")
         add_btn.setCursor(Qt.CursorShape.PointingHandCursor)
         add_btn.clicked.connect(self.register_requested.emit)
@@ -255,4 +274,5 @@ class CustomerListPanel(QWidget):
 
     def _update_header(self):
         count = len(self._all_customers)
-        self._list_header.setText(f"가나다순    {count}곳")
+        order = "국가별" if self._file_type == "global" else "가나다순"
+        self._list_header.setText(f"{order} · {count}곳")

@@ -18,7 +18,7 @@ class EditDialog(QDialog):
         self._file_type = file_type
         self.setWindowTitle("고객사 정보 수정")
         self.setWindowFlags(Qt.WindowType.Dialog | Qt.WindowType.FramelessWindowHint)
-        self.setFixedSize(500, 460)
+        self.setFixedWidth(520)  # 높이는 내용에 맞춰 자동
         self.setObjectName("registerDialog")
         self._build_ui()
 

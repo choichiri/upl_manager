@@ -4,8 +4,8 @@ from PyQt6.QtWidgets import (
     QPushButton, QScrollArea, QFrame, QLineEdit, QSizePolicy,
     QMenu, QDialog, QTextEdit, QMessageBox
 )
-from PyQt6.QtCore import Qt, pyqtSignal
-from PyQt6.QtGui import QAction
+from PyQt6.QtCore import Qt, pyqtSignal, QPointF, QTimer
+from PyQt6.QtGui import QAction, QPainter, QPen, QColor
 
 from src.models import Customer, ProgressEntry, sort_progress
 from src.widgets.progress_form import ProgressForm, parse_date_input
@@ -96,8 +96,8 @@ class InfoCard(QWidget):
         super().__init__(parent)
         self.setObjectName("infoCard")
         layout = QVBoxLayout(self)
-        layout.setContentsMargins(12, 8, 12, 8)
-        layout.setSpacing(2)
+        layout.setContentsMargins(20, 14, 20, 14)
+        layout.setSpacing(4)
 
         lbl = QLabel(label)
         lbl.setObjectName("infoLabel")
@@ -122,48 +122,83 @@ class InfoCard(QWidget):
         self._value_label.style().polish(self._value_label)
 
 
+class TimelineRail(QWidget):
+    """타임라인 세로선 + 날짜 점. 같은 날짜 묶음의 첫 항목에만 점을 찍는다."""
+    DOT_Y = 18
+
+    def __init__(self, dot: bool, first: bool, last: bool, parent=None):
+        super().__init__(parent)
+        self._dot, self._first, self._last = dot, first, last
+        self.setFixedWidth(20)
+
+    def paintEvent(self, event):
+        painter = QPainter(self)
+        painter.setRenderHint(QPainter.RenderHint.Antialiasing)
+        x = self.width() / 2
+        painter.setPen(QPen(QColor("#e1e5ea"), 2))
+        top = self.DOT_Y if self._first else 0
+        bottom = self.DOT_Y if self._last else self.height()
+        if bottom > top:
+            painter.drawLine(QPointF(x, top), QPointF(x, bottom))
+        if self._dot:
+            painter.setPen(QPen(QColor("#0067b3"), 2))
+            painter.setBrush(QColor("#ffffff"))
+            painter.drawEllipse(QPointF(x, self.DOT_Y), 5, 5)
+        painter.end()
+
+
 class TimelineItem(QWidget):
     """진행사항 타임라인 개별 항목"""
     edit_clicked = pyqtSignal(object)    # ProgressEntry
     delete_clicked = pyqtSignal(object)  # ProgressEntry
 
-    def __init__(self, entry: ProgressEntry, parent=None, show_date: bool = True):
+    def __init__(self, entry: ProgressEntry, parent=None, show_date: bool = True,
+                 first: bool = False, last: bool = False):
         super().__init__(parent)
         self.entry = entry
         self.setObjectName("timelineItem")
         # 커스텀 QWidget은 이 속성이 있어야 QSS의 배경/구분선이 렌더링됨
         self.setAttribute(Qt.WidgetAttribute.WA_StyledBackground, True)
         layout = QHBoxLayout(self)
-        layout.setContentsMargins(12, 10, 12, 10)
-        layout.setSpacing(12)
+        layout.setContentsMargins(10, 0, 8, 0)
+        layout.setSpacing(10)
+
+        # 날짜/내용은 위아래 여백을 가진 세로 레이아웃에 넣고, 레일은 여백 없이 꽉 채운다
+        def padded(widget):
+            box = QVBoxLayout()
+            box.setContentsMargins(0, 8, 0, 8)
+            box.addWidget(widget)
+            return box
 
         # 같은 날짜의 연속 항목은 날짜를 숨겨 그룹처럼 보이게 한다 (폭은 유지해 정렬 맞춤)
         date_label = QLabel(entry.date_str if show_date else "")
         date_label.setObjectName("timelineDate")
-        date_label.setAlignment(Qt.AlignmentFlag.AlignTop)
-        date_label.setFixedWidth(80)
-        layout.addWidget(date_label)
+        date_label.setAlignment(Qt.AlignmentFlag.AlignRight | Qt.AlignmentFlag.AlignTop)
+        date_label.setFixedWidth(72)
+        date_label.ensurePolished()
+        layout.addLayout(padded(date_label))
+
+        layout.addWidget(TimelineRail(show_date, first, last))
 
         content_label = QLabel(entry.content)
         content_label.setObjectName("timelineContent")
         content_label.setWordWrap(True)
+        # QSS 폰트가 적용된 상태로 높이를 계산해야 글자 아랫부분이 잘리지 않음
+        content_label.ensurePolished()
+        content_label.setTextInteractionFlags(Qt.TextInteractionFlag.TextSelectableByMouse)
         content_label.setSizePolicy(QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Preferred)
-        layout.addWidget(content_label, 1)
+        layout.addLayout(padded(content_label), 1)
 
-        edit_btn = QPushButton("⋯")
+        edit_btn = QPushButton("···")
         edit_btn.setObjectName("timelineEditButton")
-        edit_btn.setFixedSize(24, 24)
+        edit_btn.setFixedSize(28, 28)
+        edit_btn.setToolTip("수정 / 삭제")
         edit_btn.setCursor(Qt.CursorShape.PointingHandCursor)
         edit_btn.clicked.connect(self._show_menu)
         layout.addWidget(edit_btn, 0, Qt.AlignmentFlag.AlignTop)
 
     def _show_menu(self):
         menu = QMenu(self)
-        menu.setStyleSheet("""
-            QMenu { background: #ffffff; border: 1px solid #dcdee2; border-radius: 6px; padding: 4px; }
-            QMenu::item { padding: 6px 20px; border-radius: 4px; }
-            QMenu::item:selected { background: #eef5fb; color: #0067b3; }
-        """)
         edit_action = menu.addAction("수정")
         delete_action = menu.addAction("삭제")
         delete_action.setObjectName("deleteAction")
@@ -187,6 +222,7 @@ class DetailPanel(QWidget):
     def __init__(self, parent=None):
         super().__init__(parent)
         self.setObjectName("rightPanel")
+        self.setAttribute(Qt.WidgetAttribute.WA_StyledBackground, True)
         self._timeline_items: list[QWidget] = []
         self._all_entries: list[ProgressEntry] = []
         self._progress_form: ProgressForm | None = None
@@ -204,26 +240,46 @@ class DetailPanel(QWidget):
         scroll.setHorizontalScrollBarPolicy(Qt.ScrollBarPolicy.ScrollBarAlwaysOff)
 
         content = QWidget()
+        content.setObjectName("detailContent")
         self._content_layout = QVBoxLayout(content)
-        self._content_layout.setContentsMargins(16, 8, 16, 16)
-        self._content_layout.setSpacing(12)
+        self._content_layout.setContentsMargins(28, 24, 28, 28)
+        self._content_layout.setSpacing(16)
 
         self._build_header()
         self._build_info_cards()
+
+        # 진행사항 카드: 헤더 + 추가 폼 + 타임라인
+        self._progress_card = QWidget()
+        self._progress_card.setObjectName("progressCard")
+        card_layout = QVBoxLayout(self._progress_card)
+        card_layout.setContentsMargins(0, 0, 0, 12)
+        card_layout.setSpacing(0)
+        self._progress_card_layout = card_layout
+
         self._build_progress_header()
 
         self._form_placeholder = QVBoxLayout()
-        self._content_layout.addLayout(self._form_placeholder)
+        self._form_placeholder.setContentsMargins(16, 12, 16, 0)
+        card_layout.addLayout(self._form_placeholder)
 
         self._timeline_container = QWidget()
         self._timeline_layout = QVBoxLayout(self._timeline_container)
-        self._timeline_layout.setContentsMargins(0, 0, 0, 0)
+        self._timeline_layout.setContentsMargins(8, 10, 8, 0)
         self._timeline_layout.setSpacing(0)
-        self._content_layout.addWidget(self._timeline_container)
+        card_layout.addWidget(self._timeline_container)
+
+        self._content_layout.addWidget(self._progress_card)
+
+        self._empty_label = QLabel("왼쪽 목록에서 고객사를 선택하세요")
+        self._empty_label.setObjectName("emptyState")
+        self._empty_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        self._empty_label.setMinimumHeight(400)
+        self._content_layout.addWidget(self._empty_label)
 
         self._content_layout.addStretch()
         scroll.setWidget(content)
         main_layout.addWidget(scroll)
+        self._scroll = scroll
 
         self._show_empty()
 
@@ -232,11 +288,11 @@ class DetailPanel(QWidget):
         header = QWidget()
         header.setObjectName("detailHeader")
         h_layout = QHBoxLayout(header)
-        h_layout.setContentsMargins(20, 14, 16, 14)
+        h_layout.setContentsMargins(4, 0, 0, 0)
         h_layout.setSpacing(12)
 
         info_layout = QVBoxLayout()
-        info_layout.setSpacing(3)
+        info_layout.setSpacing(4)
         self._company_label = QLabel()
         self._company_label.setObjectName("detailCompanyName")
         info_layout.addWidget(self._company_label)
@@ -248,7 +304,13 @@ class DetailPanel(QWidget):
 
         btn_layout = QHBoxLayout()
         btn_layout.setSpacing(6)
-        edit_btn = QPushButton("수정")
+        excel_btn = QPushButton("엑셀 열기")
+        excel_btn.setObjectName("excelButton")
+        excel_btn.setCursor(Qt.CursorShape.PointingHandCursor)
+        excel_btn.clicked.connect(self.excel_requested.emit)
+        btn_layout.addWidget(excel_btn)
+
+        edit_btn = QPushButton("정보 수정")
         edit_btn.setObjectName("editButton")
         edit_btn.setCursor(Qt.CursorShape.PointingHandCursor)
         edit_btn.clicked.connect(self.edit_requested.emit)
@@ -259,37 +321,39 @@ class DetailPanel(QWidget):
         delete_btn.setCursor(Qt.CursorShape.PointingHandCursor)
         delete_btn.clicked.connect(self.delete_requested.emit)
         btn_layout.addWidget(delete_btn)
-
-        excel_btn = QPushButton("엑셀 열기")
-        excel_btn.setObjectName("excelButton")
-        excel_btn.setCursor(Qt.CursorShape.PointingHandCursor)
-        excel_btn.clicked.connect(self.excel_requested.emit)
-        btn_layout.addWidget(excel_btn)
         h_layout.addLayout(btn_layout)
 
         self._header_widget = header
         self._content_layout.addWidget(header)
 
     def _build_info_cards(self):
+        """기본정보 4칸을 하나의 카드에 세로 구분선으로 나눠 배치"""
         cards_row = QHBoxLayout()
-        cards_row.setSpacing(8)
+        cards_row.setContentsMargins(0, 0, 0, 0)
+        cards_row.setSpacing(0)
 
         self._info_ceo = InfoCard("대표자", "")
         self._info_contact = InfoCard("담당자", "")
         self._info_phone = InfoCard("연락처", "")
         self._info_biznum = InfoCard("사업자번호", "")
 
-        cards_row.addWidget(self._info_ceo)
-        cards_row.addWidget(self._info_contact)
-        cards_row.addWidget(self._info_phone)
-        cards_row.addWidget(self._info_biznum)
+        cards = [self._info_ceo, self._info_contact, self._info_phone, self._info_biznum]
+        for i, card in enumerate(cards):
+            if i:
+                divider = QFrame()
+                divider.setFrameShape(QFrame.Shape.VLine)
+                divider.setObjectName("infoDivider")
+                cards_row.addWidget(divider)
+            cards_row.addWidget(card, 1)
 
         self._info_row = QWidget()
+        self._info_row.setObjectName("infoRow")
         self._info_row.setLayout(cards_row)
         self._content_layout.addWidget(self._info_row)
 
     def _build_progress_header(self):
         row = QHBoxLayout()
+        row.setContentsMargins(20, 14, 16, 14)
         row.setSpacing(8)
 
         self._progress_title = QLabel("진행사항")
@@ -304,8 +368,9 @@ class DetailPanel(QWidget):
 
         self._progress_search = QLineEdit()
         self._progress_search.setObjectName("progressSearch")
-        self._progress_search.setPlaceholderText("내용 검색...")
-        self._progress_search.setFixedWidth(160)
+        self._progress_search.setPlaceholderText("내용 검색")
+        self._progress_search.setClearButtonEnabled(True)
+        self._progress_search.setFixedWidth(180)
         self._progress_search.textChanged.connect(self._filter_timeline)
         row.addWidget(self._progress_search)
 
@@ -318,7 +383,7 @@ class DetailPanel(QWidget):
         self._progress_header = QWidget()
         self._progress_header.setObjectName("progressSection")
         self._progress_header.setLayout(row)
-        self._content_layout.addWidget(self._progress_header)
+        self._progress_card_layout.addWidget(self._progress_header)
 
     def set_customer(self, customer: Customer):
         self._show_content()
@@ -340,7 +405,7 @@ class DetailPanel(QWidget):
         self._info_biznum.set_value(customer.business_number)
 
         self._all_entries = customer.progress
-        self._progress_count.setText(f"총 {len(customer.progress)}건")
+        self._progress_count.setText(f"{len(customer.progress)}건")
         self._progress_search.clear()
         self._populate_timeline(customer.progress)
 
@@ -356,17 +421,34 @@ class DetailPanel(QWidget):
 
         # 데이터는 최신순으로 보관, 화면은 오래된 날짜가 위로 오게 표시
         entries = list(reversed(entries))
+        if not entries:
+            empty = QLabel("검색 결과가 없습니다" if self._progress_search.text().strip()
+                           else "아직 진행사항이 없습니다")
+            empty.setObjectName("timelineEmpty")
+            empty.setAlignment(Qt.AlignmentFlag.AlignCenter)
+            self._timeline_layout.addWidget(empty)
+            self._refresh_scroll()
+            return
+
         for i, entry in enumerate(entries):
-            # 같은 날짜의 연속 항목은 두 번째부터 날짜를 숨긴다
+            # 같은 날짜의 연속 항목은 두 번째부터 날짜와 점을 숨긴다
             show_date = (i == 0) or (entries[i - 1].date_str != entry.date_str)
-            item = TimelineItem(entry, show_date=show_date)
-            # 날짜가 바뀌는 경계(또는 마지막 항목)에만 구분선을 긋는다
-            last_of_date = (i == len(entries) - 1) or (entries[i + 1].date_str != entry.date_str)
-            item.setProperty("lastOfDate", last_of_date)
+            item = TimelineItem(entry, show_date=show_date,
+                                first=(i == 0), last=(i == len(entries) - 1))
             item.edit_clicked.connect(self._on_edit_entry)
             item.delete_clicked.connect(self._on_delete_entry)
             self._timeline_layout.addWidget(item)
             self._timeline_items.append(item)
+        self._refresh_scroll()
+
+    def _refresh_scroll(self):
+        """항목 수가 바뀌면 QScrollArea가 내용 높이를 다시 계산하도록 강제.
+        (그대로 두면 창 크기를 바꾸기 전까지 항목들이 화면 높이에 맞춰 찌그러짐)"""
+        def refresh():
+            self._scroll.widget().layout().activate()
+            self._scroll.setWidgetResizable(True)
+        refresh()
+        QTimer.singleShot(0, refresh)  # 위젯 표시/스타일 적용이 끝난 뒤 한 번 더
 
     def _filter_timeline(self, text: str):
         text = text.strip().lower()
@@ -383,6 +465,7 @@ class DetailPanel(QWidget):
         self._progress_form.submitted.connect(self._on_progress_submitted)
         self._progress_form.cancelled.connect(self._hide_progress_form)
         self._form_placeholder.addWidget(self._progress_form)
+        self._refresh_scroll()
 
     def _hide_progress_form(self):
         if self._progress_form:
@@ -410,18 +493,18 @@ class DetailPanel(QWidget):
         if reply == QMessageBox.StandardButton.Yes:
             if entry in self._all_entries:
                 self._all_entries.remove(entry)
-            self._progress_count.setText(f"총 {len(self._all_entries)}건")
+            self._progress_count.setText(f"{len(self._all_entries)}건")
             self._populate_timeline(self._all_entries)
             self.progress_deleted.emit(entry)
 
     def _show_empty(self):
         self._header_widget.hide()
         self._info_row.hide()
-        self._progress_header.hide()
-        self._timeline_container.hide()
+        self._progress_card.hide()
+        self._empty_label.show()
 
     def _show_content(self):
+        self._empty_label.hide()
         self._header_widget.show()
         self._info_row.show()
-        self._progress_header.show()
-        self._timeline_container.show()
+        self._progress_card.show()

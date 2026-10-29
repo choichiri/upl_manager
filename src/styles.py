@@ -2,85 +2,91 @@
 Primary Blue: #0067b3
 Primary Green: #008053
 Accent Green: #3bb145
+
+배경(canvas) #f4f6f9 위에 흰색 카드(surface)를 올리는 구성.
+텍스트: #1f2329(본문) / #5b6270(보조) / #7d838e(희미)
+테두리: #e5e8ec(기본) / #d5dae0(강조)
 """
 
 DARK_THEME = """
 /* === 전역 === */
-QMainWindow, QWidget {
-    background-color: #ffffff;
-    color: #2c2c2c;
+QWidget {
+    background-color: transparent;
+    color: #1f2329;
     font-family: "맑은 고딕", "Malgun Gothic", "Segoe UI", sans-serif;
     font-size: 13px;
+}
+QMainWindow, QDialog {
+    background-color: #f4f6f9;
+}
+QToolTip {
+    background-color: #1f2329;
+    color: #ffffff;
+    border: none;
+    padding: 5px 8px;
+    border-radius: 4px;
+    font-size: 12px;
 }
 
 /* === 헤더 영역 === */
 #header {
     background-color: #ffffff;
-    border-bottom: 2px solid #e8eaed;
-    padding: 0px 20px;
-}
-#headerLogo {
-    max-height: 26px;
-    margin-right: 4px;
+    border-bottom: 1px solid #e5e8ec;
 }
 #headerDivider {
-    color: #d0d3d8;
-    margin: 0 6px;
+    color: #e5e8ec;
 }
 #headerTitle {
-    font-size: 14px;
+    font-size: 15px;
     font-weight: bold;
-    color: #333333;
-    letter-spacing: 1px;
+    color: #1f2329;
 }
 #headerInfo {
-    color: #9a9da2;
-    font-size: 11px;
-}
-
-/* === 탭 버튼 === */
-#tabButton {
-    background-color: transparent;
-    border: 1px solid transparent;
-    color: #8c9099;
-    font-family: "맑은 고딕", "Malgun Gothic", sans-serif;
-    font-size: 13px;
-    font-weight: bold;
-    padding: 5px 18px;
-    border-radius: 6px;
-}
-#tabButton:hover {
-    background-color: #eef0f3;
-}
-#tabButton[active="true"] {
-    background-color: #0067b3;
-    color: #ffffff;
-    border-color: #0067b3;
-}
-#tabButton:disabled {
-    color: #333333;
-    background-color: transparent;
-    border-color: transparent;
-}
-
-/* === 설정 버튼 === */
-#settingsButton {
-    background-color: #f0f1f3;
-    border: 1px solid #dcdee2;
-    color: #555555;
-    padding: 5px 14px;
-    border-radius: 6px;
+    color: #7d838e;
     font-size: 12px;
 }
+
+/* === 국내/해외 세그먼트 탭 === */
+#segmented {
+    background-color: #eef0f3;
+    border-radius: 9px;
+}
+#tabButton {
+    background-color: transparent;
+    border: none;
+    color: #5b6270;
+    font-size: 13px;
+    font-weight: bold;
+    padding: 6px 18px;
+    border-radius: 7px;
+}
+#tabButton:hover {
+    color: #1f2329;
+}
+#tabButton[active="true"] {
+    background-color: #ffffff;
+    color: #0067b3;
+    border: 1px solid #e0e4e9;
+}
+
+/* === 헤더 우측 버튼 === */
+#settingsButton {
+    background-color: #ffffff;
+    border: 1px solid #d5dae0;
+    color: #3a404a;
+    padding: 6px 16px;
+    border-radius: 8px;
+    font-size: 12px;
+    font-weight: bold;
+}
 #settingsButton:hover {
-    background-color: #e4e6e9;
+    background-color: #f4f6f9;
+    border-color: #c4cad2;
 }
 #refreshButton {
-    background-color: transparent;
-    border: 1px solid #dcdee2;
-    border-radius: 16px;
-    color: #8c9099;
-    font-size: 17px;
+    background-color: #ffffff;
+    border: 1px solid #d5dae0;
+    border-radius: 8px;
     padding: 0;
     min-width: 32px;
     min-height: 32px;
@@ -88,53 +94,55 @@ QMainWindow, QWidget {
     max-height: 32px;
 }
 #refreshButton:hover {
-    background-color: #eef5fb;
-    border-color: #b3d4ed;
-    color: #0067b3;
+    background-color: #e9f2fb;
+    border-color: #a9cbe8;
 }
 
 /* === 좌측 패널 === */
 #leftPanel {
-    background-color: #fafbfc;
-    border-right: 1px solid #e2e5e9;
+    background-color: #ffffff;
+    border-right: 1px solid #e5e8ec;
 }
 
 /* === 검색창 === */
 #searchInput {
-    background-color: #ffffff;
-    border: 1px solid #d8dbe0;
-    border-radius: 8px;
-    padding: 8px 12px;
-    color: #2c2c2c;
-    font-size: 13px;
+    background-color: #f4f6f9;
+    border: 1px solid #f4f6f9;
+    border-radius: 9px;
+    padding: 8px 8px;
+    color: #1f2329;
+    font-size: 14px;
+}
+#searchInput:hover {
+    border-color: #e0e4e9;
 }
 #searchInput:focus {
+    background-color: #ffffff;
     border-color: #0067b3;
 }
 
 /* === 필터 탭 === */
 #filterButton {
     background-color: transparent;
-    border: 1px solid #d8dbe0;
-    color: #8c9099;
+    border: 1px solid transparent;
+    color: #5b6270;
     padding: 4px 12px;
-    border-radius: 4px;
+    border-radius: 13px;
     font-size: 12px;
 }
 #filterButton:hover {
-    background-color: #f0f1f3;
+    background-color: #f4f6f9;
 }
 #filterButton[active="true"] {
-    background-color: #eef5fb;
-    color: #0067b3;
-    border-color: #b3d4ed;
+    background-color: #1f2329;
+    color: #ffffff;
+    font-weight: bold;
 }
 
-/* === 초성/알파벳 섹션 헤더 === */
+/* === 초성/국가 섹션 헤더 === */
 #sectionHeader {
     padding: 0;
     margin: 0;
-    background-color: #fafbfc;
 }
 #sectionHeaderLabel {
     font-size: 12px;
@@ -144,223 +152,234 @@ QMainWindow, QWidget {
     min-width: 20px;
 }
 #sectionLine {
-    color: #e2e5e9;
+    color: #eef0f3;
     max-height: 1px;
 }
 
 /* === 고객사 카드 === */
 #customerCard {
-    background-color: transparent;
     border: none;
-    border-bottom: 1px solid #eef0f2;
-    border-radius: 0px;
-    padding: 8px 12px;
-    text-align: left;
+    border-radius: 8px;
 }
-#customerCard:hover {
-    background-color: #f0f6fb;
+#leftPanel #customerCard:hover {
+    background-color: #f4f6f9;
 }
-#customerCard[selected="true"] {
-    background-color: #e8f2fc;
-    border-left: 3px solid #0067b3;
+#leftPanel #customerCard[selected="true"] {
+    background-color: #e9f2fb;
 }
-#customerCardName {
+#customerAvatar {
+    border-radius: 16px;
+    color: #ffffff;
     font-size: 13px;
     font-weight: bold;
-    color: #1a1a1a;
 }
-#customerCardSub {
-    font-size: 11px;
-    color: #8c9099;
+#leftPanel #customerCardDate {
+    font-size: 12px;
+    color: #5b6270;
+    background-color: #f1f3f6;
+    border-radius: 9px;
+    padding: 2px 7px;
 }
-#customerCardDate {
-    font-size: 11px;
+#leftPanel #customerCard[selected="true"] #customerCardDate {
+    background-color: #d4e6f7;
     color: #0067b3;
     font-weight: bold;
 }
 
 /* === 고객사 목록 헤더 === */
 #listHeader {
-    color: #8c9099;
+    color: #7d838e;
     font-size: 12px;
-    padding: 4px 0;
+    padding: 2px 4px;
 }
 
 /* === 새 고객사 등록 버튼 === */
 #addCustomerButton {
-    background-color: transparent;
-    border: 1px dashed #c0c4ca;
-    border-radius: 8px;
-    color: #8c9099;
+    background-color: #008053;
+    border: none;
+    border-radius: 9px;
+    color: #ffffff;
     padding: 10px;
     font-size: 13px;
+    font-weight: bold;
 }
 #addCustomerButton:hover {
-    border-color: #008053;
-    color: #008053;
-    background-color: #f0faf5;
+    background-color: #006d46;
 }
 
 /* === 우측 패널 === */
-#rightPanel {
-    background-color: #ffffff;
+#rightPanel, #rightPanel QScrollArea, #detailContent {
+    background-color: #f4f6f9;
+}
+#emptyState {
+    color: #7d838e;
+    font-size: 14px;
 }
 
 /* === 고객사 상세 헤더 === */
 #detailHeader {
-    background-color: #f7f8fa;
-    border: 1px solid #e2e5e9;
-    border-radius: 10px;
-    padding: 16px 20px;
-    margin: 12px;
+    background-color: transparent;
 }
 #detailCompanyName {
-    font-family: "맑은 고딕", "Malgun Gothic", sans-serif;
-    font-size: 17px;
+    font-size: 22px;
     font-weight: bold;
-    color: #1a1a1a;
+    color: #1f2329;
 }
 #detailAddress {
-    font-size: 12px;
-    color: #8c9099;
+    font-size: 13px;
+    color: #5b6270;
 }
-#editButton, #excelButton {
-    background-color: #f0f1f3;
-    border: 1px solid #dcdee2;
-    color: #555555;
-    padding: 5px 14px;
-    border-radius: 6px;
+#editButton, #excelButton, #deleteButton {
+    background-color: #ffffff;
+    border: 1px solid #d5dae0;
+    color: #3a404a;
+    padding: 7px 16px;
+    border-radius: 8px;
     font-size: 12px;
+    font-weight: bold;
 }
-#editButton:hover, #excelButton:hover {
-    background-color: #e4e6e9;
+#editButton:hover {
+    background-color: #f4f6f9;
+    border-color: #c4cad2;
+}
+#excelButton {
+    color: #008053;
+    border-color: #b5dccb;
+}
+#excelButton:hover {
+    background-color: #e7f5ee;
+    border-color: #008053;
 }
 #deleteButton {
-    background-color: #f0f1f3;
-    border: 1px solid #dcdee2;
-    color: #999999;
-    padding: 5px 14px;
-    border-radius: 6px;
-    font-size: 12px;
+    color: #7d838e;
 }
 #deleteButton:hover {
-    background-color: #fee2e2;
-    border-color: #fca5a5;
-    color: #dc2626;
+    background-color: #fdecec;
+    border-color: #f3b4b4;
+    color: #d93838;
 }
 
 /* === 정보 카드 === */
-#infoCard {
-    background-color: #f7f8fa;
-    border: 1px solid #e8eaed;
-    border-radius: 8px;
-    padding: 12px 16px;
+#infoRow {
+    background-color: #ffffff;
+    border: 1px solid #e5e8ec;
+    border-radius: 12px;
+}
+#infoDivider {
+    color: #eef0f3;
 }
 #infoLabel {
-    font-size: 11px;
-    color: #8c9099;
+    font-size: 12px;
+    color: #7d838e;
 }
 #infoValue {
-    font-size: 13px;
-    color: #1a1a1a;
+    font-size: 14px;
+    color: #1f2329;
     font-weight: bold;
 }
 #infoValueEmpty {
-    font-size: 13px;
-    color: #c0c4ca;
+    font-size: 14px;
+    color: #c4cad2;
     font-weight: normal;
-    font-style: italic;
 }
 
 /* === 진행사항 영역 === */
+#progressCard {
+    background-color: #ffffff;
+    border: 1px solid #e5e8ec;
+    border-radius: 12px;
+}
 #progressSection {
-    border-top: 2px solid #e2e5e9;
-    padding-top: 14px;
-    margin-top: 6px;
+    border-bottom: 1px solid #eef0f3;
 }
 #progressHeader {
     font-size: 15px;
     font-weight: bold;
-    color: #1a1a1a;
+    color: #1f2329;
 }
 #progressCount {
     font-size: 12px;
-    color: #8c9099;
-    font-weight: normal;
+    color: #0067b3;
+    background-color: #e9f2fb;
+    border-radius: 9px;
+    padding: 2px 8px;
+    font-weight: bold;
 }
-#progressSearch {
-    background-color: #ffffff;
-    border: 1px solid #d8dbe0;
-    border-radius: 6px;
-    padding: 5px 10px;
-    color: #2c2c2c;
+#progressCard #progressSearch {
+    background-color: #f4f6f9;
+    border: 1px solid #f4f6f9;
+    border-radius: 8px;
+    padding: 6px 8px;
+    color: #1f2329;
     font-size: 12px;
 }
-#progressSearch:focus {
+#progressCard #progressSearch:focus {
+    background-color: #ffffff;
     border-color: #0067b3;
 }
 #addProgressButton {
-    background-color: #008053;
+    background-color: #0067b3;
     border: none;
     color: #ffffff;
-    padding: 5px 14px;
-    border-radius: 6px;
+    padding: 7px 16px;
+    border-radius: 8px;
     font-size: 12px;
+    font-weight: bold;
 }
 #addProgressButton:hover {
-    background-color: #006d46;
+    background-color: #00589a;
+}
+#timelineEmpty {
+    color: #7d838e;
+    font-size: 13px;
+    padding: 30px;
 }
 
 /* === 타임라인 항목 === */
-#timelineItem {
-    background-color: #ffffff;
-    border-bottom: none;
-    border-radius: 0px;
-    padding: 11px 8px 11px 12px;
+#progressCard #timelineItem {
+    border-radius: 8px;
 }
-#timelineItem[lastOfDate="true"] {
-    border-bottom: 1px solid #dcdee2;
-}
-#timelineItem:hover {
-    background-color: #f8fafb;
+#progressCard #timelineItem:hover {
+    background-color: #f7f9fb;
 }
 #timelineDate {
-    font-size: 12px;
+    font-size: 13px;
     color: #0067b3;
     font-weight: bold;
-    min-width: 80px;
 }
 #timelineContent {
-    font-size: 13px;
-    color: #333333;
+    font-size: 14px;
+    color: #1f2329;
 }
 #timelineEditButton {
-    background-color: #f0f1f3;
-    border: 1px solid #e2e5e9;
-    border-radius: 4px;
-    color: #8c9099;
-    font-size: 14px;
-    padding: 2px 6px;
+    background-color: transparent;
+    border: none;
+    border-radius: 6px;
+    color: #7d838e;
+    font-family: "Segoe UI";
+    font-size: 18px;
+    font-weight: bold;
+    padding: 0 0 6px 0;
 }
 #timelineEditButton:hover {
-    background-color: #e4e6e9;
-    border-color: #d0d3d8;
+    background-color: #eef0f3;
     color: #0067b3;
 }
 
 /* === 스크롤바 === */
 QScrollBar:vertical {
-    background-color: #fafbfc;
-    width: 6px;
+    background-color: transparent;
+    width: 8px;
+    margin: 2px;
     border: none;
 }
 QScrollBar::handle:vertical {
-    background-color: #d0d3d8;
-    border-radius: 3px;
+    background-color: #d5dae0;
+    border-radius: 2px;
     min-height: 30px;
 }
 QScrollBar::handle:vertical:hover {
-    background-color: #b0b4ba;
+    background-color: #b0b6bf;
 }
 QScrollBar::add-line:vertical, QScrollBar::sub-line:vertical {
     height: 0;
@@ -369,154 +388,206 @@ QScrollBar::add-page:vertical, QScrollBar::sub-page:vertical {
     background-color: transparent;
 }
 
+/* === 팝업 메뉴 === */
+QMenu {
+    background-color: #ffffff;
+    border: 1px solid #e0e4e9;
+    border-radius: 8px;
+    padding: 4px;
+}
+QMenu::item {
+    padding: 7px 24px 7px 14px;
+    border-radius: 5px;
+    color: #1f2329;
+}
+QMenu::item:selected {
+    background-color: #e9f2fb;
+    color: #0067b3;
+}
+
+/* === 메시지 박스 === */
+QMessageBox {
+    background-color: #ffffff;
+}
+QMessageBox QLabel {
+    color: #1f2329;
+    font-size: 13px;
+}
+QMessageBox QPushButton {
+    background-color: #ffffff;
+    border: 1px solid #d5dae0;
+    color: #3a404a;
+    padding: 6px 18px;
+    border-radius: 7px;
+    min-width: 60px;
+}
+QMessageBox QPushButton:hover {
+    background-color: #f4f6f9;
+}
+QMessageBox QPushButton:default {
+    background-color: #0067b3;
+    border-color: #0067b3;
+    color: #ffffff;
+}
+
 /* === 다이얼로그 공통 === */
 #registerDialog, #settingsDialog {
     background-color: #ffffff;
-    border: 1px solid #d8dbe0;
-    border-radius: 12px;
+    border: 1px solid #d5dae0;
+    border-radius: 14px;
 }
 #dialogTitle {
-    font-size: 16px;
+    font-size: 17px;
     font-weight: bold;
-    color: #1a1a1a;
+    color: #1f2329;
 }
 #dialogSectionTitle {
     font-size: 14px;
     font-weight: bold;
-    color: #333333;
+    color: #1f2329;
 }
 #dialogTab {
-    background-color: #0067b3;
-    color: #ffffff;
-    padding: 2px 10px;
-    border-radius: 4px;
+    background-color: #e9f2fb;
+    color: #0067b3;
+    padding: 3px 10px;
+    border-radius: 9px;
     font-size: 12px;
+    font-weight: bold;
 }
 #dialogFieldLabel {
     font-size: 12px;
-    color: #6b7280;
+    color: #5b6270;
+    font-weight: bold;
 }
 #dialogInput {
     background-color: #ffffff;
-    border: 1px solid #d8dbe0;
-    border-radius: 6px;
+    border: 1px solid #d5dae0;
+    border-radius: 8px;
     padding: 8px 10px;
-    color: #2c2c2c;
+    color: #1f2329;
     font-size: 13px;
     min-height: 18px;
+}
+#dialogInput:hover {
+    border-color: #c4cad2;
 }
 #dialogInput:focus {
     border-color: #0067b3;
 }
 #dialogInfo {
-    font-size: 11px;
-    color: #8c9099;
+    font-size: 12px;
+    color: #7d838e;
 }
 #dialogCancelButton {
-    background-color: #f0f1f3;
-    border: 1px solid #dcdee2;
-    color: #555555;
-    padding: 6px 18px;
-    border-radius: 6px;
+    background-color: #ffffff;
+    border: 1px solid #d5dae0;
+    color: #3a404a;
+    padding: 7px 18px;
+    border-radius: 8px;
     font-size: 13px;
 }
 #dialogCancelButton:hover {
-    background-color: #e4e6e9;
+    background-color: #f4f6f9;
 }
 #dialogCloseButton {
     background-color: transparent;
-    border: 1px solid #dcdee2;
-    border-radius: 16px;
-    color: #888888;
-    font-size: 15px;
+    border: none;
+    border-radius: 8px;
+    color: #7d838e;
+    font-size: 14px;
     font-weight: bold;
 }
 #dialogCloseButton:hover {
-    background-color: #fee2e2;
-    border-color: #fca5a5;
-    color: #dc2626;
+    background-color: #f4f6f9;
+    color: #1f2329;
 }
 #dialogRegisterButton {
     background-color: #0067b3;
     border: none;
     color: #ffffff;
-    padding: 6px 18px;
-    border-radius: 6px;
+    padding: 7px 18px;
+    border-radius: 8px;
     font-size: 13px;
+    font-weight: bold;
 }
 #dialogRegisterButton:hover {
-    background-color: #005a9e;
+    background-color: #00589a;
 }
 
 /* === 진행사항 추가 폼 === */
 #progressForm {
-    background-color: #f7fafb;
-    border: 1px solid #d0e3ec;
-    border-radius: 8px;
+    background-color: #f7fafd;
+    border: 1px solid #cfe1f2;
+    border-radius: 10px;
 }
 #progressFormTitle {
     font-size: 14px;
     font-weight: bold;
-    color: #1a1a1a;
+    color: #1f2329;
 }
 #progressFormCustomer {
     font-size: 12px;
-    color: #8c9099;
+    color: #7d838e;
 }
 #progressFormClose {
     background-color: transparent;
     border: none;
-    color: #8c9099;
-    font-size: 16px;
+    border-radius: 6px;
+    color: #7d838e;
+    font-size: 14px;
 }
 #progressFormClose:hover {
-    color: #e74c3c;
+    background-color: #eef0f3;
+    color: #1f2329;
 }
-#progressContentInput {
+#progressContentInput, #progressForm #progressContentInput {
     background-color: #ffffff;
-    border: 1px solid #d8dbe0;
-    border-radius: 6px;
+    border: 1px solid #d5dae0;
+    border-radius: 8px;
     padding: 8px;
-    color: #2c2c2c;
+    color: #1f2329;
     font-size: 13px;
 }
-#progressContentInput:focus {
+#progressContentInput:focus, #progressForm #progressContentInput:focus {
     border-color: #0067b3;
 }
+#progressForm #dialogInput {
+    background-color: #ffffff;
+}
 #quickDateButton {
-    background-color: #f0f1f3;
-    border: 1px solid #dcdee2;
-    color: #555555;
+    background-color: #ffffff;
+    border: 1px solid #d5dae0;
+    color: #3a404a;
     padding: 3px 10px;
-    border-radius: 4px;
-    font-size: 11px;
+    border-radius: 11px;
+    font-size: 12px;
 }
 #quickDateButton:hover {
-    background-color: #e4e6e9;
+    background-color: #f4f6f9;
 }
 #templateButton {
-    background-color: #eef5fb;
-    border: 1px solid #c4ddf0;
+    background-color: #ffffff;
+    border: 1px solid #cfe1f2;
     color: #0067b3;
-    padding: 3px 10px;
-    border-radius: 4px;
-    font-size: 11px;
+    padding: 3px 11px;
+    border-radius: 11px;
+    font-size: 12px;
 }
 #templateButton:hover {
-    background-color: #ddeaf6;
+    background-color: #e9f2fb;
 }
 
 /* === 설정 체크박스 === */
 #settingsCheckbox {
-    color: #2c2c2c;
+    color: #1f2329;
     font-size: 13px;
     spacing: 8px;
 }
 #settingsCheckbox::indicator {
     width: 16px;
     height: 16px;
-    border: 1px solid #c0c4ca;
-    border-radius: 3px;
+    border: 1px solid #c4cad2;
+    border-radius: 4px;
     background-color: #ffffff;
 }
 #settingsCheckbox::indicator:checked {
@@ -527,10 +598,10 @@ QScrollBar::add-page:vertical, QScrollBar::sub-page:vertical {
 /* === 설정 경로 입력 === */
 #settingsPathInput {
     background-color: #ffffff;
-    border: 1px solid #d8dbe0;
-    border-radius: 6px;
+    border: 1px solid #d5dae0;
+    border-radius: 8px;
     padding: 8px 10px;
-    color: #2c2c2c;
+    color: #1f2329;
     font-size: 12px;
     min-height: 18px;
 }
@@ -540,7 +611,7 @@ QScrollBar::add-page:vertical, QScrollBar::sub-page:vertical {
 
 /* === 연결 상태 === */
 #connectedLabel {
-    font-size: 11px;
+    font-size: 12px;
     color: #3bb145;
 }
 """

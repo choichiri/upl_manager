@@ -17,7 +17,7 @@ class RegisterDialog(QDialog):
         self._file_type = file_type
         self.setWindowTitle("새 고객사 등록")
         self.setWindowFlags(Qt.WindowType.Dialog | Qt.WindowType.FramelessWindowHint)
-        self.setFixedSize(500, 500)
+        self.setFixedWidth(520)  # 높이는 내용에 맞춰 자동
         self.setObjectName("registerDialog")
         self._build_ui()
 

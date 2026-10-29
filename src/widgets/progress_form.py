@@ -44,6 +44,7 @@ class ProgressForm(QWidget):
     def __init__(self, customer_name: str = "", parent=None):
         super().__init__(parent)
         self.setObjectName("progressForm")
+        self.setAttribute(Qt.WidgetAttribute.WA_StyledBackground, True)
         self._build_ui(customer_name)
 
     def _build_ui(self, customer_name: str):

@@ -63,11 +63,6 @@ class MainWindow(QMainWindow):
         self._list_panel.register_requested.connect(self._on_register_requested)
         body.addWidget(self._list_panel)
 
-        sep = QFrame()
-        sep.setFrameShape(QFrame.Shape.VLine)
-        sep.setStyleSheet("color: #2a2a2a;")
-        body.addWidget(sep)
-
         self._detail_panel = DetailPanel()
         self._detail_panel.edit_requested.connect(self._on_edit_requested)
         self._detail_panel.delete_requested.connect(self._on_delete_customer)
@@ -82,7 +77,7 @@ class MainWindow(QMainWindow):
     def _build_header(self, parent_layout):
         header = QWidget()
         header.setObjectName("header")
-        header.setFixedHeight(48)
+        header.setFixedHeight(60)
         h_layout = QHBoxLayout(header)
         h_layout.setContentsMargins(20, 0, 20, 0)
         h_layout.setSpacing(0)
@@ -92,11 +87,12 @@ class MainWindow(QMainWindow):
         if os.path.exists(logo_path):
             logo_label = QLabel()
             pixmap = QPixmap(logo_path).scaledToHeight(
-                22, Qt.TransformationMode.SmoothTransformation
+                24, Qt.TransformationMode.SmoothTransformation
             )
             logo_label.setPixmap(pixmap)
             logo_label.setObjectName("headerLogo")
             h_layout.addWidget(logo_label)
+            h_layout.addSpacing(14)
 
         # 구분선
         divider = QFrame()
@@ -104,33 +100,36 @@ class MainWindow(QMainWindow):
         divider.setObjectName("headerDivider")
         divider.setFixedHeight(20)
         h_layout.addWidget(divider)
+        h_layout.addSpacing(14)
 
-        title = QPushButton("영업일지 관리")
-        title.setObjectName("tabButton")
-        title.setProperty("active", False)
-        title.setCursor(Qt.CursorShape.ArrowCursor)
-        title.setEnabled(False)
-        title.setStyleSheet("color: #333333; font-weight: bold;")
+        title = QLabel("영업일지 관리")
+        title.setObjectName("headerTitle")
         h_layout.addWidget(title)
 
-        h_layout.addSpacing(12)
+        h_layout.addSpacing(24)
 
-        # 국내/해외 탭
+        # 국내/해외 탭 (세그먼트 컨트롤)
+        segmented = QWidget()
+        segmented.setObjectName("segmented")
+        seg_layout = QHBoxLayout(segmented)
+        seg_layout.setContentsMargins(3, 3, 3, 3)
+        seg_layout.setSpacing(2)
+
         self._tab_korean = QPushButton("국내")
         self._tab_korean.setObjectName("tabButton")
         self._tab_korean.setCursor(Qt.CursorShape.PointingHandCursor)
         self._tab_korean.setProperty("active", True)
         self._tab_korean.clicked.connect(lambda: self._switch_tab("korean"))
-        h_layout.addWidget(self._tab_korean)
-
-        h_layout.addSpacing(4)
+        seg_layout.addWidget(self._tab_korean)
 
         self._tab_global = QPushButton("해외")
         self._tab_global.setObjectName("tabButton")
         self._tab_global.setCursor(Qt.CursorShape.PointingHandCursor)
         self._tab_global.setProperty("active", False)
         self._tab_global.clicked.connect(lambda: self._switch_tab("global"))
-        h_layout.addWidget(self._tab_global)
+        seg_layout.addWidget(self._tab_global)
+
+        h_layout.addWidget(segmented, 0, Qt.AlignmentFlag.AlignVCenter)
 
         h_layout.addStretch()
 
@@ -218,7 +217,7 @@ class MainWindow(QMainWindow):
         painter = QPainter(pixmap)
         painter.setRenderHint(QPainter.RenderHint.Antialiasing)
 
-        pen = QPen(QColor("#8c9099"), 2.2)
+        pen = QPen(QColor("#5b6270"), 2.2)
         pen.setCapStyle(Qt.PenCapStyle.RoundCap)
         painter.setPen(pen)
 
